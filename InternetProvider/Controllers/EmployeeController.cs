@@ -51,7 +51,7 @@ namespace InternetProvider.Controllers
                     }
                 }
 
-                return Ok("Employee record inserted successfully.");
+                return Ok("Registration Successful.");
             }
             catch (Exception ex)
             {
@@ -89,15 +89,15 @@ namespace InternetProvider.Controllers
                                     First_Name = reader["first_name"].ToString(),
                                     Last_Name = reader["last_name"].ToString(),
                                     Email = reader["email"].ToString(),
-                                    Phone = reader["email"].ToString(),
+                                    Phone = (long)(reader["phone"] != DBNull.Value ? Convert.ToInt64(reader["phone"]) : (long?)null),
                                     Department = reader["department"].ToString(),
                                     Position = reader["p_position"].ToString(),
                                     Status = reader["status"].ToString(),
-                                    Requested_Date = reader["requested_date"].ToString(),
-                                    Approval_Date = reader["approval_date"].ToString()
-                                   
+                                    Requested_Date = reader["requested_date"] != DBNull.Value ? Convert.ToDateTime(reader["requested_date"]) : (DateTime?)null,
+                                    Approval_Date = reader["approval_date"] != DBNull.Value ? Convert.ToDateTime(reader["approval_date"]) : (DateTime?)null,
+                                    Remark = reader["remark"].ToString()
+                                };
 
-                                   };
 
                                 employees.Add(emp);
                             }
@@ -105,10 +105,9 @@ namespace InternetProvider.Controllers
                             return Ok(employees);
                         }
                     }
-                   
                 }
-                
             }
+           
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred: {ex.Message}");
@@ -128,12 +127,13 @@ namespace InternetProvider.Controllers
                 {
                     connection.Open();
 
-                    using (NpgsqlCommand command = new NpgsqlCommand("UPDATE employee SET status = @p_status, approval_date = current_date WHERE id = @p_id RETURNING id", connection))
+                    using (NpgsqlCommand command = new NpgsqlCommand("SELECT update_employee_status(@p_id, @p_status, @p_remark);", connection))
                     {
                         command.CommandType = CommandType.Text;
 
                         command.Parameters.AddWithValue("@p_id", id);
                         command.Parameters.AddWithValue("@p_status", updatedEmployee.Status);
+                        command.Parameters.AddWithValue("@p_remark", updatedEmployee.Remark);
 
 
                        // int RowsAffected = command.ExecuteNonQuery();
@@ -206,9 +206,9 @@ namespace InternetProvider.Controllers
                                     First_Name = reader["p_first_name"].ToString(),
                                     Last_Name = reader["p_last_name"].ToString(),
                                     Status = reader["p_status"].ToString(),
-                                    Requested_Date = reader["p_requested_date"].ToString(),
-                                    Approval_Date = reader["p_approval_date"].ToString(),
-
+                                    Requested_Date = Convert.ToDateTime(reader["p_requested_date"]),
+                                    Approval_Date = Convert.ToDateTime(reader["p_approval_date"]),
+                                    Remark = reader["p_remark"].ToString()
                             };
 
 

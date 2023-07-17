@@ -5,5 +5,7 @@
         public int Id { get; set; }
 
         public string Status { get; set; }
+
+        public string Remark { get; set; }
     }
 }

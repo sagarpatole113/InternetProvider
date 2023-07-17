@@ -8,7 +8,9 @@
 
         public string Last_Name { get; set;}
         public string Status { get; set;}
-        public string Requested_Date { get; set;}
-        public string Approval_Date  { get; set;}
+        public DateTime Requested_Date { get; set;}
+        public DateTime Approval_Date  { get; set;}
+
+        public string Remark { get; set;}
     }
 }
