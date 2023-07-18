@@ -4,9 +4,9 @@ namespace InternetProvider.Models
 {
     public class Employee
     {
-       
-        [Required (ErrorMessage = "Employee Id is required")]
-        [StringLength(8, ErrorMessage = "Employee Id must be 8 character")]
+
+        [Required(ErrorMessage = "Required")]
+        [StringLength(8, MinimumLength = 8, ErrorMessage = "Enter Valid 8 letter Employee Id")]
         public string Emp_Id { get; set; }
 
 
@@ -21,7 +21,7 @@ namespace InternetProvider.Models
         public string Email { get; set; }
 
 
-        [Required (ErrorMessage = "Phone Number is required")]
+        [Required  (ErrorMessage = "Phone Number is required")]
         public long Phone { get; set; }
 
 
