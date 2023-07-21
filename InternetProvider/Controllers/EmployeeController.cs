@@ -98,9 +98,10 @@ namespace InternetProvider.Controllers
                                     Remark = reader["remark"].ToString()
                                 };
 
-
                                 employees.Add(emp);
+                               
                             }
+                            employees = employees.OrderBy(e => e.Status == "Pending" ? 0 : e.Status == "Approved" ? 1 : 2).ToList();
 
                             return Ok(employees);
                         }
@@ -206,8 +207,8 @@ namespace InternetProvider.Controllers
                                     First_Name = reader["p_first_name"].ToString(),
                                     Last_Name = reader["p_last_name"].ToString(),
                                     Status = reader["p_status"].ToString(),
-                                    Requested_Date = Convert.ToDateTime(reader["p_requested_date"]),
-                                    Approval_Date = Convert.ToDateTime(reader["p_approval_date"]),
+                                    Requested_Date = reader["p_requested_date"] != DBNull.Value ? Convert.ToDateTime(reader["p_requested_date"]) : (DateTime?)null,
+                                    Approval_Date = reader["p_approval_date"] != DBNull.Value ? Convert.ToDateTime(reader["p_approval_date"]) : (DateTime?)null,
                                     Remark = reader["p_remark"].ToString()
                             };
 

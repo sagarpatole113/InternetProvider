@@ -1,10 +1,7 @@
 ﻿using InternetProvider.Models;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using System.Data;
-using System.Reflection;
 
 namespace InternetProvider.Controllers
 {
@@ -34,23 +31,24 @@ namespace InternetProvider.Controllers
                     {
 
                         command.CommandType = CommandType.Text;
-                        //   command.CommandText = "create_employee(@p_emp_id,@p_first_name,@p_last_name,@p_email,@p_phone,@p_department,@p_position,@p_status,@p_requested_date)";
                         string username = adminDto.Admin_Id;
                         string password = adminDto.EncryptedPassword;
-                      //  var Storekey = this.Configuration.GetValue<string>("Keys:PrivateKey");
-                        //string key = Storekey.ToString();
-                       var key = "E546C8DF278CD5931069B522E695D4F2";
-
-                        var encryptedPass = PasswordConfig.EncryptString(password, key);
+                       
                         command.Parameters.AddWithValue("@p_admin_id", username);
-                        command.Parameters.AddWithValue("@p_admin_password",encryptedPass);
+                        command.Parameters.AddWithValue("@p_admin_password", password);
 
-                        // command.ExecuteNonQuery();
                         object result = command.ExecuteScalar();
+
+                        if(result != null)
+                        {
+                            return Ok("Admin record inserted successfully.");
+                        }
+                        else { return BadRequest("Something went wrong"); }
                     }
                 }
 
-                return Ok("Admin record inserted successfully.");
+
+                
             }
             catch (Exception ex)
             {
@@ -59,15 +57,12 @@ namespace InternetProvider.Controllers
             }
         }
 
-
-
-
         //======================================= Authenticate ============================
         [HttpPost("login")]
         public IActionResult GetAdminDetails(ReturnAdmin returnAdmin)
         {
 
-            string connectionString =Configuration.GetConnectionString("DefaultString");
+            string connectionString = Configuration.GetConnectionString("DefaultString");
 
             try
             {
@@ -75,30 +70,19 @@ namespace InternetProvider.Controllers
                 {
                     connection.Open();
 
-                    using (NpgsqlCommand command = new NpgsqlCommand("select admin_password,admin_id from admin where admin_password = @p_admin_password or admin_id = @p_admin_id;", connection))
+                    using (NpgsqlCommand command = new NpgsqlCommand("select is_admin_valid(@p_admin_id,@p_admin_password)", connection))
                     {
                         command.CommandType = CommandType.Text;
 
                         var username = returnAdmin.Admin_Id;
                         var pass = returnAdmin.DecryptedPassword;
-                       
-                        command.Parameters.AddWithValue("@p_admin_password", pass);
+
                         command.Parameters.AddWithValue("@p_admin_id", username);
+                        command.Parameters.AddWithValue("@p_admin_password", pass);
 
-                        object result = command.ExecuteScalar();
-
-                        string decryptStr = result.ToString();
-
-                         var key = "E546C8DF278CD5931069B522E695D4F2";
-
-                      //  var Storekey = this.Configuration.GetValue<string>("Keys:PrivateKey");
-                       // string key = Storekey.ToString();
-
-                        string encryptedPass = PasswordConfig.DecryptString(decryptStr, key);
-
-                        Console.WriteLine(encryptedPass);
-
-                        if (encryptedPass == pass)
+                        bool result = (bool)command.ExecuteScalar();
+                       
+                        if (result == true)
                         {
                             return Ok("Admin login authentication successfully.");
                         }
