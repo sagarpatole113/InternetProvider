@@ -22,7 +22,7 @@ namespace InternetProvider.Controllers
 
         //================================================= Insert Employee ============================
 
-        [HttpPost] 
+        [HttpPost]
         public IActionResult InsertEmployee(Employee employee)
         {
             string connectionString = Configuration.GetConnectionString("DefaultString");
@@ -37,7 +37,7 @@ namespace InternetProvider.Controllers
                     {
 
                         command.CommandType = CommandType.Text;
-                     //   command.CommandText = "create_employee(@p_emp_id,@p_first_name,@p_last_name,@p_email,@p_phone,@p_department,@p_position,@p_status,@p_requested_date)";
+                        //   command.CommandText = "create_employee(@p_emp_id,@p_first_name,@p_last_name,@p_email,@p_phone,@p_department,@p_position,@p_status,@p_requested_date)";
                         command.Parameters.AddWithValue("@p_emp_id", employee.Emp_Id);
                         command.Parameters.AddWithValue("@p_first_name", employee.First_Name);
                         command.Parameters.AddWithValue("@p_last_name", employee.Last_Name);
@@ -45,8 +45,8 @@ namespace InternetProvider.Controllers
                         command.Parameters.AddWithValue("@p_phone", employee.Phone);
                         command.Parameters.AddWithValue("@p_department", employee.Department);
                         command.Parameters.AddWithValue("@p_position", employee.Position);
-                       
-                    
+
+
                         command.ExecuteNonQuery();
                     }
                 }
@@ -99,7 +99,7 @@ namespace InternetProvider.Controllers
                                 };
 
                                 employees.Add(emp);
-                               
+
                             }
                             employees = employees.OrderBy(e => e.Status == "Pending" ? 0 : e.Status == "Approved" ? 1 : 2).ToList();
 
@@ -108,15 +108,15 @@ namespace InternetProvider.Controllers
                     }
                 }
             }
-           
+
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
-           
+
         }
 
-  //================================================= Update Status ============================
+        //================================================= Update Status ============================
         [HttpPut("{id}")]
         public IActionResult UpdateEmployee(int id, [FromBody] Update_Employee updatedEmployee)
         {
@@ -137,13 +137,13 @@ namespace InternetProvider.Controllers
                         command.Parameters.AddWithValue("@p_remark", updatedEmployee.Remark);
 
 
-                       // int RowsAffected = command.ExecuteNonQuery();
-                       // Console.WriteLine(RowsAffected);
+                        // int RowsAffected = command.ExecuteNonQuery();
+                        // Console.WriteLine(RowsAffected);
                         object result = command.ExecuteScalar();
 
                         if (result != null)
                         {
-                            return Ok($"Employee with ID {id} has been updated successfully.");  
+                            return Ok($"Employee with ID {id} has been updated successfully.");
                         }
                         else
                         {
@@ -161,7 +161,7 @@ namespace InternetProvider.Controllers
         }
 
 
-
+        //=========================================== Get Single Employee =================================
 
         [HttpGet("{emp_id}")]
 
@@ -210,7 +210,7 @@ namespace InternetProvider.Controllers
                                     Requested_Date = reader["p_requested_date"] != DBNull.Value ? Convert.ToDateTime(reader["p_requested_date"]) : (DateTime?)null,
                                     Approval_Date = reader["p_approval_date"] != DBNull.Value ? Convert.ToDateTime(reader["p_approval_date"]) : (DateTime?)null,
                                     Remark = reader["p_remark"].ToString()
-                            };
+                                };
 
 
 
@@ -242,6 +242,65 @@ namespace InternetProvider.Controllers
 
             }
 
+        }
+
+
+        //================================================ Get Employee By Status =================================
+
+        [HttpGet]
+        [Route("GetByStatus/{empStatus}")]
+        public IActionResult GetEmployeesByStatus(string empStatus)
+        {
+            string connectionString = Configuration.GetConnectionString("DefaultString");
+
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM get_employees_by_status(@status_value);", connection))
+                    {
+                        command.CommandType = CommandType.Text;
+
+                        command.Parameters.AddWithValue("@status_value", empStatus);
+
+                        using (NpgsqlDataReader reader = command.ExecuteReader())
+                        {
+                            List<AllDetails> employees = new List<AllDetails>();
+
+                            while (reader.Read())
+                            {
+                                AllDetails emp = new AllDetails
+                                {
+                                    Id = Convert.ToInt32(reader["id"]),
+                                    Emp_Id = reader["emp_id"].ToString(),
+                                    First_Name = reader["first_name"].ToString(),
+                                    Last_Name = reader["last_name"].ToString(),
+                                    Email = reader["email"].ToString(),
+                                    Phone = (long)(reader["phone"] != DBNull.Value ? Convert.ToInt64(reader["phone"]) : (long?)null),
+                                    Department = reader["department"].ToString(),
+                                    Position = reader["p_position"].ToString(),
+                                    Status = reader["p_status"].ToString(),
+                                    Requested_Date = reader["requested_date"] != DBNull.Value ? Convert.ToDateTime(reader["requested_date"]) : (DateTime?)null,
+                                    Approval_Date = reader["approval_date"] != DBNull.Value ? Convert.ToDateTime(reader["approval_date"]) : (DateTime?)null,
+                                    Remark = reader["remark"].ToString()
+                                };
+
+                                employees.Add(emp);
+
+                            }
+                            return Ok(employees);
+                        }
+                    }
+                }
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+             
         }
 
     }
